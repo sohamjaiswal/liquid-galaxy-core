@@ -31,7 +31,7 @@ echo "====Processes===="
 ${HOME}/bin/lg-run "
 free -m;
 echo;
-ps -o user,pid,%cpu,%mem,vsize,start,time,stat,comm -C googleearth-bin,lxdm-binary,lightdm,screensaver.py,squid3,squidmon.sh,lighttpd
+ps -o user,pid,%cpu,%mem,vsize,start,time,stat,comm -C google-earth-pro,lxdm-binary,lightdm,screensaver.py,squid3,squidmon.sh,lighttpd
 " 2>/dev/null
 echo
 echo "====Thermal===="

@@ -24,7 +24,7 @@ for pid in ${MEPIDS}; do
     pkill -u $(id -u) $pid
 done
 
-pkill -u $(id -u) googleearth-bin
+pkill -u $(id -u) google-earth-pro
 sleep 2
 
 if [[ "$( id -un )" == "lg" ]]; then
@@ -67,7 +67,7 @@ sed -i -e "s@##LG_PHPIFACE##@${LG_PHPIFACE}@g" ${HOME}/.googleearth/*.kml
 
 while true ; do
     if [[ "$DIR" == "master" ]]; then
-        lg-sudo killall googleearth-bin
+        lg-sudo killall google-earth-pro
     fi
     [ -w $SPACENAVDEV ] && ${HOME}/bin/led-enable ${SPACENAVDEV} 1
 

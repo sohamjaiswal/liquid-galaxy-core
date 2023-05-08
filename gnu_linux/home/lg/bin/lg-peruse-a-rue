@@ -29,7 +29,7 @@ lg-ctl-master
 
 #GEScriptPID=$(pgrep run-earth-bin)
 #ssh -tt -x lg@lg1 "killall -q node; liquid-galaxy.lg-peruse-a-rue/bin/peruse-a-rue" &
-lg-run "killall -q run-earth-bin.sh; killall -q chromium-browser; killall -q googleearth-bin"
+lg-run "killall -q run-earth-bin.sh; killall -q chromium-browser; killall -q google-earth-pro"
 
 for lg in $LG_FRAMES ; do
 	frame=$(($(echo $lg | cut -c 3)-1))
