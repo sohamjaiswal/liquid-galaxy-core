@@ -11,13 +11,12 @@ $ sudo apt upgrade -f .
 
 ## Installation
 
-The installation script (`install.sh`) is intended to be used with Ubuntu. It might not work
+The installation script (`lg.sh`) is intended to be used with Ubuntu 22.04. It might not work
 with other distributions.
 
-Tested with:
 
-- Ubuntu 16.04 LTS
-- <strike>Ubuntu 15.10</strike>
+Working: 
+Install Script
 
 ### Distribution installation details:
 
@@ -32,7 +31,7 @@ Other details such as the account name or user password are not relevant, write 
 
 Get and execute installation file on the target machine (from any user folder):
 
-`bash <(curl -s https://raw.githubusercontent.com/LiquidGalaxyLAB/liquid-galaxy/master/install.sh)`
+`bash <(curl -s https://raw.githubusercontent.com/sohamjaiswal/liquid-galaxy-core/master/lg.sh)`
 
 x64 bits OS might require these additional libraries in order to start Google Earth:
 
