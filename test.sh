@@ -37,7 +37,7 @@ if [ `getconf LONG_BIT` = "64" ]; then
 fi
 EARTH_FOLDER="/opt/google/earth/pro/"
 NETWORK_INTERFACE=$(ip route | awk '/^default/ {print $5}')
-# MAC_ADDRESS=$(ip link show $NETWORK_INTERFACE | awk '/ether/ {print $2}')
+MAC_ADDRESS=$(ip link show $NETWORK_INTERFACE | awk '/ether/ {print $2}')
 SSH_PASSPHRASE=""
 USER_PATH=$(pwd)/$GIT_FOLDER_NAME
 
@@ -154,8 +154,13 @@ sudo update-alternatives --set gnome-www-browser /usr/bin/chromium-browser
 xdg-settings set default-web-browser chromium_chromium.desktop
 sudo apt-get remove --purge -yq update-notifier*
 
+#SSH setup
+sudo systemctl start ssh
+sudo systemctl enable ssh
+
 #Liquid Galaxy
 echo "Setting up Liquid Galaxy..."
+git clone $GIT_URL
 sudo cp -r $USER_PATH/earth/ $HOME
 sudo ln -s $EARTH_FOLDER $HOME/earth/builds/latest
 awk '/LD_LIBRARY_PATH/{print "export LC_NUMERIC=en_US.UTF-8"}1' $HOME/earth/builds/latest/googleearth | sudo tee $HOME/earth/builds/latest/googleearth > /dev/null

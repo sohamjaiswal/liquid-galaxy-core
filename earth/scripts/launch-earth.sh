@@ -16,7 +16,7 @@
 . ${HOME}/etc/shell.conf
 
 if [[ "${FRAME_NO}" = "0" ]]; then
-    lg-run killall run-earth-bin.sh googleearth-bin
+    lg-run killall run-earth-bin.sh google-earth-pro
     sleep 1
     lg-run-bg ${SCRIPDIR}/run-earth-bin.sh
 fi
