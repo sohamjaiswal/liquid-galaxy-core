@@ -329,6 +329,7 @@ EOM
 mkdir -p $HOME/.config/autostart/
 echo -e "[Desktop Entry]\nName=LG\nExec=bash "$HOME"/earth/scripts/launch-earth.sh\nType=Application" > $HOME"/.config/autostart/lg.desktop"
 
+git clone $GIT_URL
 gcc -m32 -o "$HOME"/write-event $GIT_FOLDER_NAME/input_event/write-event.c 
 sudo chmod 0755 "$HOME"/write-event
 
