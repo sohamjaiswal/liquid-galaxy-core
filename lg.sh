@@ -125,7 +125,7 @@ if [ $INSTALL_DRIVERS == true ] ; then
     sudo ubuntu-drivers autoinstall
 fi
 
-Install Google Earth
+#Install Google Earth
 echo "Installing Google Earth..."
 wget -q $EARTH_DEB
 sudo dpkg -i google-earth*.deb
