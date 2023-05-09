@@ -181,7 +181,8 @@ sudo cp -r . $HOME
 
 cd - > /dev/null
 
-sudo cp -r $USER_PATH/gnu_linux/etc/ $USER_PATH/gnu_linux/patches/ $USER_PATH/gnu_linux/sbin/ /
+sudo cp -r $USER_PATH/gnu_linux/etc/ $USER_PATH/gnu_linux/patches/ 
+sudo cp -r $USER_PATH/gnu_linux/sbin/ /usr/
 
 sudo chmod 0440 /etc/sudoers.d/42-lg
 sudo ln -s /etc/apparmor.d/sbin.dhclient /etc/apparmor.d/disable/
