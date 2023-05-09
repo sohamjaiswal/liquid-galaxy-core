@@ -254,21 +254,33 @@ sed -i "s/\(DHCP_OCTET *= *\).*/\1$OCTET/" $HOME/personavars.txt
 sudo $HOME/bin/personality.sh $MACHINE_ID $OCTET > /dev/null
 
 # Network configuration
-sudo ip link add eth0 type dummy
-sudo ip link set eth0 up
+# Configure network interface
+cat << EOM | sudo tee /etc/netplan/01-netcfg.yaml > /dev/null
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: true
+EOM
+sudo netplan apply
+# Enable network interface management by NetworkManager
+sudo sed -i "s/\(managed *= *\).*/\1true/" /etc/NetworkManager/NetworkManager.conf
+# Configure network interface name
 echo "SUBSYSTEM==\"net\",ACTION==\"add\",ATTR{address}==\"$NETWORK_INTERFACE_MAC\",KERNEL==\"$NETWORK_INTERFACE\",NAME=\"eth0\"" | sudo tee /etc/udev/rules.d/10-network.rules > /dev/null
-sudo udevadm control --reload-rules && udevadm trigger
+# Update /etc/hosts file
 sudo sed -i '/lgX.liquid.local/d' /etc/hosts
 sudo sed -i '/kh.google.com/d' /etc/hosts
 sudo sed -i '/10.42./d' /etc/hosts
-sudo ip route add 10.42.$OCTET.1/24 dev eth0
-sudo ip route add 10.42.$OCTET.2/24 dev eth0
-sudo ip route add 10.42.$OCTET.3/24 dev eth0
-sudo ip route add 10.42.$OCTET.4/24 dev eth0
-sudo ip route add 10.42.$OCTET.5/24 dev eth0
-sudo ip route add 10.42.$OCTET.6/24 dev eth0
-sudo ip route add 10.42.$OCTET.7/24 dev eth0
-sudo ip route add 10.42.$OCTET.8/24 dev eth0
+sudo tee -a "/etc/hosts" > /dev/null 2>&1 << EOM
+10.42.$OCTET.1  lg1
+10.42.$OCTET.2  lg2
+10.42.$OCTET.3  lg3
+10.42.$OCTET.4  lg4
+10.42.$OCTET.5  lg5
+10.42.$OCTET.6  lg6
+10.42.$OCTET.7  lg7
+10.42.$OCTET.8  lg8
+EOM
 sudo sed -i '/10.42./d' /etc/hosts.squid
 sudo tee -a "/etc/hosts.squid" > /dev/null 2>&1 << EOM
 10.42.$OCTET.1  lg1
@@ -280,7 +292,7 @@ sudo tee -a "/etc/hosts.squid" > /dev/null 2>&1 << EOM
 10.42.$OCTET.7  lg7
 10.42.$OCTET.8  lg8
 EOM
-sudo tee "/etc/iptables/rules.v4" > /dev/null << EOM
+sudo tee "/etc/iptables.conf" > /dev/null << EOM
 *filter
 :INPUT ACCEPT [0:0]
 :FORWARD ACCEPT [0:0]
@@ -307,11 +319,6 @@ COMMIT
 :POSTROUTING ACCEPT [358:22379]
 COMMIT
 EOM
-sudo iptables-save /etc/iptables.conf /etc/iptables/rules.v4
-sudo systemctl start netfilter-persistent
-sudo systemctl enable netfilter-persistent
-sudo systemctl restart netfilter-persistent
-
 # Setup liquid galaxy network
 # sudo ip link add lgnet type dummy
 # sudo ip link set lgnet up
