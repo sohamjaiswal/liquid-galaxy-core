@@ -259,9 +259,13 @@ sudo $HOME/bin/personality.sh $MACHINE_ID $OCTET > /dev/null
 cat << EOM | sudo tee /etc/netplan/01-netcfg.yaml > /dev/null
 network:
   version: 2
+	renderer: NetworkManager
   ethernets:
     eth0:
-      dhcp4: true
+      match:
+				name: eth0
+			dhcp4: no
+			address: [10.42.$OCTET.$MACHINE_ID/24]
 EOM
 sudo netplan apply
 # Enable network interface management by NetworkManager
