@@ -76,7 +76,7 @@ then
 fi
 echo -en \"\${hours}h \${mins}m\"
 ) | convert -pointsize 18 -background '#00000080' -fill white text:- -trim -bordercolor '#00000080' -border 5x5 miff:/tmp/header-img-${2##*.};
-echo -en \"GPID: \$( pgrep google-earth-pro ). SQPID: \$( pgrep -f sbin\/squid3 ).\nCRASH: \$( ls -1 ~/.googleearth/crashlogs/ | wc -l ). MEMF: \$( awk '/^MemFree/ {print \$2\$3}' /proc/meminfo ).\" | convert -pointsize 18 -background '#00000080' -fill white text:- -trim -bordercolor '#00000080' -border 5x5 miff:/tmp/footer-img-${2##*.};
+echo -en \"GPID: \$( pgrep google-earth-pro ). SQPID: \$( pgrep -f sbin\/squid ).\nCRASH: \$( ls -1 ~/.googleearth/crashlogs/ | wc -l ). MEMF: \$( awk '/^MemFree/ {print \$2\$3}' /proc/meminfo ).\" | convert -pointsize 18 -background '#00000080' -fill white text:- -trim -bordercolor '#00000080' -border 5x5 miff:/tmp/footer-img-${2##*.};
 xwd -display ${2} -root -silent | composite -gravity north -geometry +0+3 miff:/tmp/header-img-${2##*.} xwd:- -resize ${resize} miff:- | composite -gravity south -geometry +0+3 miff:/tmp/footer-img-${2##*.} miff:- miff:- | convert -bordercolor 'black' -border 5x0 miff:- miff:-
 " > ${3} &
   PIDS="${PIDS} $!"

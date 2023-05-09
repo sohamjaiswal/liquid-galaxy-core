@@ -7,7 +7,7 @@
 . ${HOME}/etc/shell.conf
 smallfile="http://www.endpoint.com/robots.txt"
 stampfile="/tmp/squidstamp"
-sqpidfile="/var/run/squid3.pid"
+sqpidfile="/var/run/squid.pid"
 
 (echo -n "$0 Start: "; date) | logger -p local3.info
 
@@ -20,18 +20,18 @@ fi
 while :; do
     2>&1 /home/lg/bin/lg-run "\
     touch -t \"\$( date --date='5 minutes ago' +%y%m%d%H%M.%S )\" $stampfile;
-    if [[ -n \"\$( pgrep -f 'sbin\/squid3' )\" ]]; then
+    if [[ -n \"\$( pgrep -f 'sbin\/squid' )\" ]]; then
         if ( wget -q -t 1 -T 6 -O /dev/null --header='Host: www.endpoint.com' \"$smallfile\" ); then
             logger -p local3.info \".squidok.\";
         elif [[ $sqpidfile -nt $stampfile ]]; then
             logger -p local3.info \".waiting for squid to age.\";
         else
             logger -p local3.err \"\$(date +%s).\$(hostname).squidrestart.\";
-            ssh -i ~/.ssh/lg-id_rsa root@localhost \"service squid3 restart\" | logger -p local3.info;
+            ssh -i ~/.ssh/lg-id_rsa root@localhost \"service squid restart\" | logger -p local3.info;
         fi
     else
         logger -p local3.err \"\$(date +%s).\$(hostname).squidrestart.\";
-        ssh -i ~/.ssh/lg-id_rsa root@localhost \"service squid3 restart\" | logger -p local3.info;
+        ssh -i ~/.ssh/lg-id_rsa root@localhost \"service squid restart\" | logger -p local3.info;
     fi
     " >/dev/null
     sleep 6

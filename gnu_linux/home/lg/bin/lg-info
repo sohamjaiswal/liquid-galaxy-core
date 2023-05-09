@@ -25,13 +25,13 @@ echo
 echo "==Display Nodes=="
 echo
 echo "====Disk Usage===="
-${HOME}/bin/lg-run "df {/,/isodevice,/var/spool/squid3}; printf %21s USED INODES; echo; df -i {/,/isodevice,/var/spool/squid3} | tail -n +2" 2>/dev/null
+${HOME}/bin/lg-run "df {/,/isodevice,/var/spool/squid}; printf %21s USED INODES; echo; df -i {/,/isodevice,/var/spool/squid} | tail -n +2" 2>/dev/null
 echo
 echo "====Processes===="
 ${HOME}/bin/lg-run "
 free -m;
 echo;
-ps -o user,pid,%cpu,%mem,vsize,start,time,stat,comm -C google-earth-pro,lxdm-binary,lightdm,screensaver.py,squid3,squidmon.sh,lighttpd
+ps -o user,pid,%cpu,%mem,vsize,start,time,stat,comm -C google-earth-pro,lxdm-binary,lightdm,screensaver.py,squid,squidmon.sh,lighttpd
 " 2>/dev/null
 echo
 echo "====Thermal===="

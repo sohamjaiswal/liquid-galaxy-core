@@ -201,7 +201,7 @@ echo "Upgrading system packages ..."
 sudo apt-get -yq update
 
 echo "Installing new packages..."
-sudo apt-get install -yq python3 python3-pip tcpdump git chromium-browser nautilus openssh-server sshpass squid3 squid-cgi apache2 xdotool unclutter lsb-core lsb libc6-dev-i386 gcc
+sudo apt-get install -yq python3 python3-pip tcpdump git chromium-browser nautilus openssh-server sshpass squid squid-cgi apache2 xdotool unclutter lsb-core lsb libc6-dev-i386 gcc
 
 pip3 install evdev
 
