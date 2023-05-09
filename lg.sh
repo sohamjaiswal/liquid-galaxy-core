@@ -259,13 +259,13 @@ sudo $HOME/bin/personality.sh $MACHINE_ID $OCTET > /dev/null
 cat << EOM | sudo tee /etc/netplan/01-netcfg.yaml > /dev/null
 network:
   version: 2
-	renderer: NetworkManager
+  renderer: NetworkManager
   ethernets:
     eth0:
+      dhcp4: true
       match:
-				name: eth0
-			dhcp4: no
-			address: [10.42.$OCTET.$MACHINE_ID/24]
+        macaddress: $MAC_ADDRESS
+      set-name: eth0
 EOM
 sudo netplan apply
 # Enable network interface management by NetworkManager
@@ -333,7 +333,7 @@ EOM
 mkdir -p $HOME/.config/autostart/
 echo -e "[Desktop Entry]\nName=LG\nExec=bash "$HOME"/earth/scripts/launch-earth.sh\nType=Application" > $HOME"/.config/autostart/lg.desktop"
 
-gcc -m32 -o "$HOME"/write-event ./$GIT_FOLDER_NAME/input_event/write-event.c 
+gcc -m32 -o "$HOME"/write-event ~/$GIT_FOLDER_NAME/input_event/write-event.c 
 sudo chmod 0755 "$HOME"/write-event
 
 # Web interface
