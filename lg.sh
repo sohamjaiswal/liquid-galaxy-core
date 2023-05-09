@@ -258,6 +258,7 @@ sudo $HOME/bin/personality.sh $MACHINE_ID $OCTET > /dev/null
 # Configure network interface
 # Network configuration
 sudo rm -rf /etc/netplan/*
+sudo touch /etc/network/interfaces
 sudo tee -a "/etc/network/interfaces" > /dev/null << EOM
 auto eth0
 iface eth0 inet dhcp
