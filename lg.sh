@@ -116,7 +116,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 #Update, Upgrade & Install Packages
 echo "Doin' Deps"
-sudo apt -yq update && sudo apt -yq upgrade && sudo apt install -yq ifupdown python3 python3-pip tcpdump iptables-persistent git chromium-browser nautilus openssh-server sshpass squid squid-cgi apache2 xdotool unclutter lsb-core lsb libc6-dev-i386 gcc
+sudo apt -yq update && sudo apt -yq upgrade && sudo apt install -yq net-tools ifupdown python3 python3-pip tcpdump iptables-persistent git chromium-browser nautilus openssh-server sshpass squid squid-cgi apache2 xdotool unclutter lsb-core lsb libc6-dev-i386 gcc
 pip3 install evdev
 if [ $INSTALL_DRIVERS == true ] ; then
 	echo "Installing extra drivers..."
@@ -258,6 +258,17 @@ sudo $HOME/bin/personality.sh $MACHINE_ID $OCTET > /dev/null
 # Configure network interface
 # Network configuration
 sudo rm -rf /etc/netplan/*
+sudo tee -a "/etc/netplan/01-netcfg.yaml" > /dev/null << EOM
+network:
+	version: 2
+	renderer: NetworkManager
+	ethernets:
+		eth0:
+			dhcp4: true
+			match:
+				macaddress: $MAC_ADDRESS
+			set-name: eth0
+EOM
 sudo touch /etc/network/interfaces
 sudo tee -a "/etc/network/interfaces" > /dev/null << EOM
 auto eth0
@@ -278,6 +289,7 @@ sudo tee -a "/etc/hosts" > /dev/null 2>&1 << EOM
 10.42.$OCTET.7  lg7
 10.42.$OCTET.8  lg8
 EOM
+sudo netplan apply
 sudo systemctl restart networking 
 sudo sed -i '/10.42./d' /etc/hosts.squid
 sudo tee -a "/etc/hosts.squid" > /dev/null 2>&1 << EOM
