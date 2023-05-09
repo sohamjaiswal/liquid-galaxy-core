@@ -254,9 +254,8 @@ sed -i "s/\(DHCP_OCTET *= *\).*/\1$OCTET/" $HOME/personavars.txt
 sudo $HOME/bin/personality.sh $MACHINE_ID $OCTET > /dev/null
 
 # Network configuration
-sudo ip link add eth0 type ethernet
+sudo ip link add eth0 type dummy
 sudo ip link set eth0 up
-sudo sed -i "s/\(managed *= *\).*/\1true/" /etc/NetworkManager/NetworkManager.conf
 echo "SUBSYSTEM==\"net\",ACTION==\"add\",ATTR{address}==\"$NETWORK_INTERFACE_MAC\",KERNEL==\"$NETWORK_INTERFACE\",NAME=\"eth0\"" | sudo tee /etc/udev/rules.d/10-network.rules > /dev/null
 sudo udevadm control --reload-rules && udevadm trigger
 sudo sed -i '/lgX.liquid.local/d' /etc/hosts
