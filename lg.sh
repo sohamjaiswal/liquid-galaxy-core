@@ -260,14 +260,14 @@ sudo $HOME/bin/personality.sh $MACHINE_ID $OCTET > /dev/null
 sudo rm -rf /etc/netplan/*
 sudo tee -a "/etc/netplan/01-netcfg.yaml" > /dev/null << EOM
 network:
-	version: 2
-	renderer: NetworkManager
-	ethernets:
-		eth0:
-			dhcp4: true
-			match:
-				macaddress: $MAC_ADDRESS
-			set-name: eth0
+  version: 2
+  renderer: NetworkManager
+  ethernets:
+    eth0:
+      dhcp4: true
+      match:
+        macaddress: $MAC_ADDRESS
+      set-name: eth0
 EOM
 sudo touch /etc/network/interfaces
 sudo tee -a "/etc/network/interfaces" > /dev/null << EOM
