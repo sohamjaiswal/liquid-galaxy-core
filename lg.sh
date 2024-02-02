@@ -130,6 +130,7 @@ echo "Installing Google Earth..."
 wget -q $EARTH_DEB
 sudo dpkg -i google-earth*.deb
 rm google-earth*.deb
+echo "Installed GEarth"
 
 # Generate the GDM3 configuration file
 sudo tee /etc/gdm3/custom.conf > /dev/null << EOM
@@ -142,21 +143,28 @@ AutomaticLoginEnable=True
 [greeter]
 DisableUserList=True
 EOM
+echo "GDM3 Configured"
 
+# Set up the environment
+echo "Setting up the environment..."
 gsettings set org.gnome.desktop.screensaver idle-activation-enabled false
 gsettings set org.gnome.desktop.session idle-delay 0
 gsettings set org.gnome.desktop.screensaver lock-enabled false
 gsettings set org.gnome.settings-daemon.plugins.power idle-dim false
 echo -e 'Section "ServerFlags"\nOption "blanktime" "0"\nOption "standbytime" "0"\nOption "suspendtime" "0"\nOption "offtime" "0"\nEndSection' | sudo tee -a /etc/X11/xorg.conf > /dev/null
 gsettings set org.gnome.shell.extensions.dash-to-dock click-action 'minimize'
+echo "Environment set up"
 sudo update-alternatives --set x-www-browser /usr/bin/chromium-browser
 sudo update-alternatives --set gnome-www-browser /usr/bin/chromium-browser
 xdg-settings set default-web-browser chromium_chromium.desktop
 sudo apt-get remove --purge -yq update-notifier*
+echo "Environment set up"
 
 #SSH setup
+echo "Setting up SSH..."
 sudo systemctl start ssh
 sudo systemctl enable ssh
+echo "SSH setup done"
 
 #Liquid Galaxy
 echo "Setting up Liquid Galaxy..."
