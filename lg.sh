@@ -192,6 +192,7 @@ cd - > /dev/null
 sudo cp -r $USER_PATH/gnu_linux/etc/ $USER_PATH/gnu_linux/patches/ 
 sudo cp -r $USER_PATH/gnu_linux/sbin/ /usr/
 
+# TODO investigate 42-lg no such file or directory
 sudo chmod 0440 /etc/sudoers.d/42-lg
 sudo ln -s /etc/apparmor.d/sbin.dhclient /etc/apparmor.d/disable/
 sudo apparmor_parser -R /etc/apparmor.d/sbin.dhclient
@@ -217,6 +218,7 @@ else
 fi
 sudo chmod 0600 $HOME/.ssh/lg-id_rsa
 sudo chmod 0600 /root/.ssh/authorized_keys
+# TODO investigate ssh host dsa key not found
 sudo chmod 0600 /etc/ssh/ssh_host_dsa_key
 sudo chmod 0600 /etc/ssh/ssh_host_ecdsa_key
 sudo chmod 0600 /etc/ssh/ssh_host_rsa_key
@@ -297,8 +299,10 @@ sudo tee -a "/etc/hosts" > /dev/null 2>&1 << EOM
 10.42.$OCTET.7  lg7
 10.42.$OCTET.8  lg8
 EOM
+# TODO investigate network settings failing to load
 sudo netplan apply
 sudo systemctl restart networking 
+# TODO investigate hosts.squid not found
 sudo sed -i '/10.42./d' /etc/hosts.squid
 sudo tee -a "/etc/hosts.squid" > /dev/null 2>&1 << EOM
 10.42.$OCTET.1  lg1
@@ -342,6 +346,7 @@ EOM
 mkdir -p $HOME/.config/autostart/
 echo -e "[Desktop Entry]\nName=LG\nExec=bash "$HOME"/earth/scripts/launch-earth.sh\nType=Application" > $HOME"/.config/autostart/lg.desktop"
 
+# TODO investigate ioctl.h not found
 gcc -m32 -o "$HOME"/write-event ~/$GIT_FOLDER_NAME/input_event/write-event.c 
 sudo chmod 0755 "$HOME"/write-event
 
