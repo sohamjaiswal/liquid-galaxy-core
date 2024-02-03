@@ -1,5 +1,14 @@
 # Liquid Galaxy
 
+## Progress Tracker
+View this to track behaviour reproduction progress...
+
+| Behaviour          | Status       |
+|--------------------|--------------|
+| Launch G-Earth     | ✅ (Done)     |
+| Correct N/W Config | ❌ (Failing)  |
+| SSH Setup          | 💫 (Untested) |
+
 # Before Installation
 
 Install the lsb-core and lsb packages for Ubuntu 16.04 : $ sudo apt install lsb-core and $ sudo apt install lsb
