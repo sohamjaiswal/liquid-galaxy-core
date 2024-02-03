@@ -9,6 +9,12 @@ View this to track behaviour reproduction progress...
 | Correct N/W Config | ❌ (Failing)  |
 | SSH Setup          | 💫 (Untested) |
 
+## Tested Apps
+
+| App Name        | Status       |
+|--------------------|--------------|
+| LG Controller    | 💫 (Untested) |
+
 # Before Installation
 
 Install the lsb-core and lsb packages for Ubuntu 16.04 : $ sudo apt install lsb-core and $ sudo apt install lsb
