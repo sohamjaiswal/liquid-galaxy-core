@@ -101,7 +101,7 @@ GIT_FOLDER: $GIT_FOLDER_NAME
 EARTH_DEB: $EARTH_DEB
 EARTH_FOLDER: $EARTH_FOLDER
 NETWORK_INTERFACE: $NETWORK_INTERFACE
-NETWORK_MAC_ADDRESS: $NETWORK_INTERFACE_MAC
+NETWORK_MAC_ADDRESS: $MAC_ADDRESS
 Is it correct? Press any key to continue or CTRL-C to exit
 EOM
 read
@@ -218,8 +218,8 @@ else
 fi
 sudo chmod 0600 $HOME/.ssh/lg-id_rsa
 sudo chmod 0600 /root/.ssh/authorized_keys
-# TODO investigate ssh host dsa key not found
-sudo chmod 0600 /etc/ssh/ssh_host_dsa_key
+# sudo chmod 0600 /etc/ssh/ssh_host_dsa_key
+# Reason for comment: DSA is deprecated due to smaller key size and security concerns
 sudo chmod 0600 /etc/ssh/ssh_host_ecdsa_key
 sudo chmod 0600 /etc/ssh/ssh_host_rsa_key
 sudo chown -R $LOCAL_USER:$LOCAL_USER $HOME/.ssh
@@ -268,7 +268,8 @@ sudo $HOME/bin/personality.sh $MACHINE_ID $OCTET > /dev/null
 # Configure network interface
 # Network configuration
 sudo rm -rf /etc/netplan/*
-sudo tee -a "/etc/netplan/01-netcfg.yaml" > /dev/null << EOM
+# This is the file in Ubuntu 22.04
+sudo tee -a "/etc/netplan/01-network-manager-all.yaml" > /dev/null << EOM
 network:
   version: 2
   renderer: NetworkManager
@@ -279,13 +280,15 @@ network:
         macaddress: $MAC_ADDRESS
       set-name: eth0
 EOM
-sudo touch /etc/network/interfaces
-sudo tee -a "/etc/network/interfaces" > /dev/null << EOM
-auto eth0
-iface eth0 inet dhcp
-EOM
+# There is no etc/network/interfaces file in Ubuntu 22.04
+# sudo touch /etc/network/interfaces
+# sudo tee -a "/etc/network/interfaces" > /dev/null << EOM
+# auto eth0
+# iface eth0 inet dhcp
+# EOM
 sudo sed -i "s/\(managed *= *\).*/\1true/" /etc/NetworkManager/NetworkManager.conf
-echo "SUBSYSTEM==\"net\",ACTION==\"add\",ATTR{address}==\"$NETWORK_INTERFACE_MAC\",KERNEL==\"$NETWORK_INTERFACE\",NAME=\"eth0\"" | sudo tee /etc/udev/rules.d/10-network.rules > /dev/null
+# Fix: change derived n/w name to eth0
+echo "SUBSYSTEM==\"net\",ACTION==\"add\",ATTR{address}==\"$MAC_ADDRESS\",NAME=\"eth0\"" | sudo tee /etc/udev/rules.d/70-persistent-net.rules > /dev/null
 sudo sed -i '/lgX.liquid.local/d' /etc/hosts
 sudo sed -i '/kh.google.com/d' /etc/hosts
 sudo sed -i '/10.42./d' /etc/hosts

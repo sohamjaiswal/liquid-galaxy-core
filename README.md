@@ -11,8 +11,8 @@ View this to track behaviour reproduction progress...
 
 ## Tested Apps
 
-| App Name        | Status       |
-|--------------------|--------------|
+| App Name         | Status       |
+|------------------|--------------|
 | LG Controller    | 💫 (Untested) |
 
 # Before Installation
