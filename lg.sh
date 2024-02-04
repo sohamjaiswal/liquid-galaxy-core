@@ -268,7 +268,6 @@ sudo $HOME/bin/personality.sh $MACHINE_ID $OCTET > /dev/null
 mkdir -p $HOME/.config/autostart/
 echo -e "[Desktop Entry]\nName=LG\nExec=bash "$HOME"/earth/scripts/launch-earth.sh\nType=Application" > $HOME"/.config/autostart/lg.desktop"
 
-# TODO investigate ioctl.h not found
 gcc -m32 -o "$HOME"/write-event ~/$GIT_FOLDER_NAME/input_event/write-event.c 
 sudo chmod 0755 "$HOME"/write-event
 
