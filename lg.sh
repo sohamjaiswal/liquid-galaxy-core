@@ -264,6 +264,25 @@ sed -i "s/\(DHCP_LG_FRAMES_MAX *= *\).*/\1$TOTAL_MACHINES/" $HOME/personavars.tx
 sed -i "s/\(DHCP_OCTET *= *\).*/\1$OCTET/" $HOME/personavars.txt
 sudo $HOME/bin/personality.sh $MACHINE_ID $OCTET > /dev/null
 
+# Launch on boot
+mkdir -p $HOME/.config/autostart/
+echo -e "[Desktop Entry]\nName=LG\nExec=bash "$HOME"/earth/scripts/launch-earth.sh\nType=Application" > $HOME"/.config/autostart/lg.desktop"
+
+# TODO investigate ioctl.h not found
+gcc -m32 -o "$HOME"/write-event ~/$GIT_FOLDER_NAME/input_event/write-event.c 
+sudo chmod 0755 "$HOME"/write-event
+
+# Web interface
+if [ $MASTER == true ]; then
+	echo "Installing web interface (master only)..."
+	sudo apt-get -yq install php php-cgi libapache2-mod-php
+	sudo touch /etc/apache2/httpd.conf
+	sudo sed -i '/accept.lock/d' /etc/apache2/apache2.conf
+	sudo rm /var/www/html/index.html
+	sudo cp -r $USER_PATH/php-interface/. /var/www/html/
+	sudo chown -R $LOCAL_USER:$LOCAL_USER /var/www/html/
+fi
+
 # Network configuration
 # Configure network interface
 # Network configuration
@@ -344,25 +363,6 @@ COMMIT
 :POSTROUTING ACCEPT [358:22379]
 COMMIT
 EOM
-
-# Launch on boot
-mkdir -p $HOME/.config/autostart/
-echo -e "[Desktop Entry]\nName=LG\nExec=bash "$HOME"/earth/scripts/launch-earth.sh\nType=Application" > $HOME"/.config/autostart/lg.desktop"
-
-# TODO investigate ioctl.h not found
-gcc -m32 -o "$HOME"/write-event ~/$GIT_FOLDER_NAME/input_event/write-event.c 
-sudo chmod 0755 "$HOME"/write-event
-
-# Web interface
-if [ $MASTER == true ]; then
-	echo "Installing web interface (master only)..."
-	sudo apt-get -yq install php php-cgi libapache2-mod-php
-	sudo touch /etc/apache2/httpd.conf
-	sudo sed -i '/accept.lock/d' /etc/apache2/apache2.conf
-	sudo rm /var/www/html/index.html
-	sudo cp -r $USER_PATH/php-interface/. /var/www/html/
-	sudo chown -R $LOCAL_USER:$LOCAL_USER /var/www/html/
-fi
 
 # Cleanup
 echo "Cleaning up..."
