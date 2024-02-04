@@ -116,7 +116,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 #Update, Upgrade & Install Packages
 echo "Doin' Deps"
-sudo apt -yq update && sudo apt -yq upgrade && sudo apt install -yq net-tools ifupdown python3 python3-pip tcpdump iptables-persistent git chromium-browser nautilus openssh-server sshpass squid squid-cgi apache2 xdotool unclutter lsb-core lsb libc6 gcc
+sudo apt -yq update && sudo apt -yq upgrade && sudo apt install -yq net-tools ifupdown python3 python3-pip tcpdump iptables-persistent git chromium-browser nautilus openssh-server sshpass squid squid-cgi apache2 xdotool unclutter lsb-core lsb libc6 gcc linux-headers-$(uname -r) build-essential dkms
 pip3 install evdev
 if [ $INSTALL_DRIVERS == true ] ; then
 	echo "Installing extra drivers..."
