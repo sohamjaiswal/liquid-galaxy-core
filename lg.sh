@@ -202,6 +202,71 @@ sudo chown $LOCAL_USER:$LOCAL_USER $HOME/earth/builds/latest/drivers.ini
 
 sudo chmod +0666 /dev/uinput
 
+# There is no etc/network/interfaces file in Ubuntu 22.04
+# sudo touch /etc/network/interfaces
+# sudo tee -a "/etc/network/interfaces" > /dev/null << EOM
+# auto eth0
+# iface eth0 inet dhcp
+# EOM
+sudo sed -i "s/\(managed *= *\).*/\1true/" /etc/NetworkManager/NetworkManager.conf
+# Fix: change derived n/w name to eth0
+echo "SUBSYSTEM==\"net\",ACTION==\"add\",ATTR{address}==\"$MAC_ADDRESS\",NAME=\"eth0\"" | sudo tee /etc/udev/rules.d/70-persistent-net.rules > /dev/null
+sudo sed -i '/lgX.liquid.local/d' /etc/hosts
+sudo sed -i '/kh.google.com/d' /etc/hosts
+sudo sed -i '/10.42./d' /etc/hosts
+sudo tee -a "/etc/hosts" > /dev/null 2>&1 << EOM
+10.42.$OCTET.1  lg1
+10.42.$OCTET.2  lg2
+10.42.$OCTET.3  lg3
+10.42.$OCTET.4  lg4
+10.42.$OCTET.5  lg5
+10.42.$OCTET.6  lg6
+10.42.$OCTET.7  lg7
+10.42.$OCTET.8  lg8
+EOM
+# TODO investigate network settings failing to load
+sudo netplan apply
+sudo systemctl restart networking 
+# TODO investigate hosts.squid not found
+sudo sed -i '/10.42./d' /etc/hosts.squid
+sudo tee -a "/etc/hosts.squid" > /dev/null 2>&1 << EOM
+10.42.$OCTET.1  lg1
+10.42.$OCTET.2  lg2
+10.42.$OCTET.3  lg3
+10.42.$OCTET.4  lg4
+10.42.$OCTET.5  lg5
+10.42.$OCTET.6  lg6
+10.42.$OCTET.7  lg7
+10.42.$OCTET.8  lg8
+EOM
+sudo tee "/etc/iptables.conf" > /dev/null << EOM
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [43616:6594412]
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -p tcp -m multiport --dports 22 -j ACCEPT
+-A INPUT -s 10.42.0.0/16 -p udp -m udp --dport 161 -j ACCEPT
+-A INPUT -s 10.42.0.0/16 -p udp -m udp --dport 3401 -j ACCEPT
+-A INPUT -p tcp -m multiport --dports 81,8111,8112 -j ACCEPT
+-A INPUT -p udp -m multiport --dports 8113 -j ACCEPT
+-A INPUT -s 10.42.$OCTET.0/24 -p tcp -m multiport --dports 80,3128,3130 -j ACCEPT
+-A INPUT -s 10.42.$OCTET.0/24 -p udp -m multiport --dports 80,3128,3130 -j ACCEPT
+-A INPUT -s 10.42.$OCTET.0/24 -p tcp -m multiport --dports 9335 -j ACCEPT
+-A INPUT -s 10.42.$OCTET.0/24 -d 10.42.$OCTET.255/32 -p udp -j ACCEPT
+-A INPUT -j DROP
+-A FORWARD -j DROP
+COMMIT
+*nat
+:PREROUTING ACCEPT [52902:8605309]
+:INPUT ACCEPT [0:0]
+:OUTPUT ACCEPT [358:22379]
+:POSTROUTING ACCEPT [358:22379]
+COMMIT
+EOM
+
 # Configure SSH
 if [ $MASTER == true ]; then
 	echo "Setting up SSH..."
@@ -297,70 +362,6 @@ network:
       match:
         macaddress: $MAC_ADDRESS
       set-name: eth0
-EOM
-# There is no etc/network/interfaces file in Ubuntu 22.04
-# sudo touch /etc/network/interfaces
-# sudo tee -a "/etc/network/interfaces" > /dev/null << EOM
-# auto eth0
-# iface eth0 inet dhcp
-# EOM
-sudo sed -i "s/\(managed *= *\).*/\1true/" /etc/NetworkManager/NetworkManager.conf
-# Fix: change derived n/w name to eth0
-echo "SUBSYSTEM==\"net\",ACTION==\"add\",ATTR{address}==\"$MAC_ADDRESS\",NAME=\"eth0\"" | sudo tee /etc/udev/rules.d/70-persistent-net.rules > /dev/null
-sudo sed -i '/lgX.liquid.local/d' /etc/hosts
-sudo sed -i '/kh.google.com/d' /etc/hosts
-sudo sed -i '/10.42./d' /etc/hosts
-sudo tee -a "/etc/hosts" > /dev/null 2>&1 << EOM
-10.42.$OCTET.1  lg1
-10.42.$OCTET.2  lg2
-10.42.$OCTET.3  lg3
-10.42.$OCTET.4  lg4
-10.42.$OCTET.5  lg5
-10.42.$OCTET.6  lg6
-10.42.$OCTET.7  lg7
-10.42.$OCTET.8  lg8
-EOM
-# TODO investigate network settings failing to load
-sudo netplan apply
-sudo systemctl restart networking 
-# TODO investigate hosts.squid not found
-sudo sed -i '/10.42./d' /etc/hosts.squid
-sudo tee -a "/etc/hosts.squid" > /dev/null 2>&1 << EOM
-10.42.$OCTET.1  lg1
-10.42.$OCTET.2  lg2
-10.42.$OCTET.3  lg3
-10.42.$OCTET.4  lg4
-10.42.$OCTET.5  lg5
-10.42.$OCTET.6  lg6
-10.42.$OCTET.7  lg7
-10.42.$OCTET.8  lg8
-EOM
-sudo tee "/etc/iptables.conf" > /dev/null << EOM
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [43616:6594412]
--A INPUT -i lo -j ACCEPT
--A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
--A INPUT -p icmp -j ACCEPT
--A INPUT -p tcp -m multiport --dports 22 -j ACCEPT
--A INPUT -s 10.42.0.0/16 -p udp -m udp --dport 161 -j ACCEPT
--A INPUT -s 10.42.0.0/16 -p udp -m udp --dport 3401 -j ACCEPT
--A INPUT -p tcp -m multiport --dports 81,8111,8112 -j ACCEPT
--A INPUT -p udp -m multiport --dports 8113 -j ACCEPT
--A INPUT -s 10.42.$OCTET.0/24 -p tcp -m multiport --dports 80,3128,3130 -j ACCEPT
--A INPUT -s 10.42.$OCTET.0/24 -p udp -m multiport --dports 80,3128,3130 -j ACCEPT
--A INPUT -s 10.42.$OCTET.0/24 -p tcp -m multiport --dports 9335 -j ACCEPT
--A INPUT -s 10.42.$OCTET.0/24 -d 10.42.$OCTET.255/32 -p udp -j ACCEPT
--A INPUT -j DROP
--A FORWARD -j DROP
-COMMIT
-*nat
-:PREROUTING ACCEPT [52902:8605309]
-:INPUT ACCEPT [0:0]
-:OUTPUT ACCEPT [358:22379]
-:POSTROUTING ACCEPT [358:22379]
-COMMIT
 EOM
 
 # Cleanup
