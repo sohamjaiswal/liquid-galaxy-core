@@ -37,7 +37,7 @@ if [ `getconf LONG_BIT` = "64" ]; then
 fi
 EARTH_FOLDER="/opt/google/earth/pro/"
 NETWORK_INTERFACE=$(ip route | awk '/^default/ {print $5}')
-NETWORK_INTERFACE_MAC=$(/sbin/ifconfig | grep $NETWORK_INTERFACE | awk '{print $5}')
+NETWORK_INTERFACE_MAC=$(ip link show $NETWORK_INTERFACE | awk '/ether/ {print $2}')
 SSH_PASSPHRASE=""
 USER_PATH=$(pwd)/$GIT_FOLDER_NAME
 
