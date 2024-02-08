@@ -200,11 +200,8 @@ sudo chown $LOCAL_USER:$LOCAL_USER $HOME/earth/builds/latest/drivers.ini
 
 sudo chmod +0666 /dev/uinput
 
-# Network configuration
-# Configure network interface
-# Network configuration
 sudo sed -i "s/\(managed *= *\).*/\1true/" /etc/NetworkManager/NetworkManager.conf
-echo "SUBSYSTEM==\"net\",ACTION==\"add\",ATTR{address}==\"$NETWORK_INTERFACE_MAC\",KERNEL==\"$NETWORK_INTERFACE\",NAME=\"eth0\"" | sudo tee /etc/udev/rules.d/10-network.rules > /dev/null
+echo "SUBSYSTEM==\"net\",ACTION==\"add\",ATTR{address}==\"$NETWORK_INTERFACE_MAC\",NAME=\"eth0\"" | sudo tee /etc/udev/rules.d/10-network.rules > /dev/null
 
 sudo rm -rf /etc/netplan/*
 sudo tee -a "/etc/netplan/01-network-manager-all.yaml" > /dev/null << EOM
