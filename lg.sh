@@ -37,7 +37,7 @@ if [ `getconf LONG_BIT` = "64" ]; then
 fi
 EARTH_FOLDER="/opt/google/earth/pro/"
 NETWORK_INTERFACE=$(ip route | awk '/^default/ {print $5}')
-MAC_ADDRESS=$(ip link show $NETWORK_INTERFACE | awk '/ether/ {print $2}')
+NETWORK_INTERFACE_MAC=$(/sbin/ifconfig | grep $NETWORK_INTERFACE | awk '{print $5}')
 SSH_PASSPHRASE=""
 USER_PATH=$(pwd)/$GIT_FOLDER_NAME
 
@@ -101,7 +101,7 @@ GIT_FOLDER: $GIT_FOLDER_NAME
 EARTH_DEB: $EARTH_DEB
 EARTH_FOLDER: $EARTH_FOLDER
 NETWORK_INTERFACE: $NETWORK_INTERFACE
-NETWORK_MAC_ADDRESS: $MAC_ADDRESS
+NETWORK_MAC_ADDRESS: $NETWORK_INTERFACE_MAC
 Is it correct? Press any key to continue or CTRL-C to exit
 EOM
 read
@@ -192,8 +192,6 @@ cd - > /dev/null
 sudo cp -r $USER_PATH/gnu_linux/etc/ $USER_PATH/gnu_linux/patches/ 
 sudo cp -r $USER_PATH/gnu_linux/sbin/ /usr/
 
-# TODO investigate 42-lg no such file or directory
-sudo chmod 0440 /etc/sudoers.d/42-lg
 sudo ln -s /etc/apparmor.d/sbin.dhclient /etc/apparmor.d/disable/
 sudo apparmor_parser -R /etc/apparmor.d/sbin.dhclient
 sudo /etc/init.d/apparmor restart > /dev/null
@@ -209,11 +207,7 @@ sudo chmod +0666 /dev/uinput
 # iface eth0 inet dhcp
 # EOM
 sudo sed -i "s/\(managed *= *\).*/\1true/" /etc/NetworkManager/NetworkManager.conf
-# Fix: change derived n/w name to eth0
-echo "SUBSYSTEM==\"net\",ACTION==\"add\",ATTR{address}==\"$MAC_ADDRESS\",NAME=\"eth0\"" | sudo tee /etc/udev/rules.d/70-persistent-net.rules > /dev/null
-sudo sed -i '/lgX.liquid.local/d' /etc/hosts
-sudo sed -i '/kh.google.com/d' /etc/hosts
-sudo sed -i '/10.42./d' /etc/hosts
+echo "SUBSYSTEM==\"net\",ACTION==\"add\",ATTR{address}==\"$NETWORK_INTERFACE_MAC\",KERNEL==\"$NETWORK_INTERFACE\",NAME=\"eth0\"" | sudo tee /etc/udev/rules.d/10-network.rules > /dev/null
 sudo tee -a "/etc/hosts" > /dev/null 2>&1 << EOM
 10.42.$OCTET.1  lg1
 10.42.$OCTET.2  lg2
@@ -224,11 +218,8 @@ sudo tee -a "/etc/hosts" > /dev/null 2>&1 << EOM
 10.42.$OCTET.7  lg7
 10.42.$OCTET.8  lg8
 EOM
-# TODO investigate network settings failing to load
 sudo netplan apply
 sudo systemctl restart networking 
-# TODO investigate hosts.squid not found
-sudo sed -i '/10.42./d' /etc/hosts.squid
 sudo tee -a "/etc/hosts.squid" > /dev/null 2>&1 << EOM
 10.42.$OCTET.1  lg1
 10.42.$OCTET.2  lg2
@@ -239,33 +230,56 @@ sudo tee -a "/etc/hosts.squid" > /dev/null 2>&1 << EOM
 10.42.$OCTET.7  lg7
 10.42.$OCTET.8  lg8
 EOM
-sudo tee "/etc/iptables.conf" > /dev/null << EOM
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [43616:6594412]
--A INPUT -i lo -j ACCEPT
--A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
--A INPUT -p icmp -j ACCEPT
--A INPUT -p tcp -m multiport --dports 22 -j ACCEPT
--A INPUT -s 10.42.0.0/16 -p udp -m udp --dport 161 -j ACCEPT
--A INPUT -s 10.42.0.0/16 -p udp -m udp --dport 3401 -j ACCEPT
--A INPUT -p tcp -m multiport --dports 81,8111,8112 -j ACCEPT
--A INPUT -p udp -m multiport --dports 8113 -j ACCEPT
--A INPUT -s 10.42.$OCTET.0/24 -p tcp -m multiport --dports 80,3128,3130 -j ACCEPT
--A INPUT -s 10.42.$OCTET.0/24 -p udp -m multiport --dports 80,3128,3130 -j ACCEPT
--A INPUT -s 10.42.$OCTET.0/24 -p tcp -m multiport --dports 9335 -j ACCEPT
--A INPUT -s 10.42.$OCTET.0/24 -d 10.42.$OCTET.255/32 -p udp -j ACCEPT
--A INPUT -j DROP
--A FORWARD -j DROP
-COMMIT
-*nat
-:PREROUTING ACCEPT [52902:8605309]
-:INPUT ACCEPT [0:0]
-:OUTPUT ACCEPT [358:22379]
-:POSTROUTING ACCEPT [358:22379]
-COMMIT
+
+sudo tee -a "/etc/nftables.conf" > /dev/null 2>&1 << EOM
+#!/usr/sbin/nft -f
+flush ruleset
+
+table ip filter {
+    chain input {
+        type filter hook input priority 0; policy accept;
+        iifname "lo" counter accept
+        ct state related,established counter accept
+        ip protocol icmp counter accept
+        ip protocol tcp tcp dport 22 counter accept
+        ip saddr 10.42.0.0/16 udp dport 161 counter accept
+        ip saddr 10.42.0.0/16 udp dport 3401 counter accept
+        ip protocol tcp tcp dport { 81, 8111, 8112 } counter accept
+        ip protocol udp udp dport 8113 counter accept
+        ip protocol tcp ip saddr 10.42.$OCTET.0/24 tcp dport { 80, 3128, 3130 } counter accept
+        ip protocol udp ip saddr 10.42.$OCTET.0/24 udp dport { 80, 3128, 3130 } counter accept
+        ip protocol tcp ip saddr 10.42.$OCTET.0/24 tcp dport 9335 counter accept
+        ip protocol udp ip saddr 10.42.$OCTET.0/24 ip daddr 10.42.$OCTET.255 counter accept
+        counter drop
+    }
+
+    chain forward {
+        type filter hook forward priority 0; policy drop;
+    }
+}
+
+table ip nat {
+    chain prerouting {
+        type nat hook prerouting priority -100; policy accept;
+    }
+
+    chain input {
+        type nat hook input priority 100; policy accept;
+    }
+
+    chain output {
+        type nat hook output priority -100; policy accept;
+    }
+
+    chain postrouting {
+        type nat hook postrouting priority 100; policy accept;
+    }
+}
 EOM
+
+sudo nft -f /etc/nftables.conf
+sudo systemctl enable nftables
+sudo systemctl start nftables
 
 # Configure SSH
 if [ $MASTER == true ]; then
@@ -283,8 +297,6 @@ else
 fi
 sudo chmod 0600 $HOME/.ssh/lg-id_rsa
 sudo chmod 0600 /root/.ssh/authorized_keys
-# sudo chmod 0600 /etc/ssh/ssh_host_dsa_key
-# Reason for comment: DSA is deprecated due to smaller key size and security concerns
 sudo chmod 0600 /etc/ssh/ssh_host_ecdsa_key
 sudo chmod 0600 /etc/ssh/ssh_host_rsa_key
 sudo chown -R $LOCAL_USER:$LOCAL_USER $HOME/.ssh
