@@ -200,6 +200,10 @@ sudo chown $LOCAL_USER:$LOCAL_USER $HOME/earth/builds/latest/drivers.ini
 
 sudo chmod +0666 /dev/uinput
 
+sudo tee -a "/etc/network/interfaces" > /dev/null << EOM
+auto eth0
+iface eth0 inet dhcp
+EOM
 sudo sed -i "s/\(managed *= *\).*/\1true/" /etc/NetworkManager/NetworkManager.conf
 echo "SUBSYSTEM==\"net\",ACTION==\"add\",ATTR{address}==\"$NETWORK_INTERFACE_MAC\",NAME=\"eth0\"" | sudo tee /etc/udev/rules.d/10-network.rules > /dev/null
 
@@ -212,7 +216,7 @@ network:
     eth0:
       dhcp4: true
       match:
-        macaddress: $MAC_ADDRESS
+        macaddress: $NETWORK_INTERFACE_MAC
       set-name: eth0
 EOM
 
