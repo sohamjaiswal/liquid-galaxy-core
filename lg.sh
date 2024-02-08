@@ -200,14 +200,25 @@ sudo chown $LOCAL_USER:$LOCAL_USER $HOME/earth/builds/latest/drivers.ini
 
 sudo chmod +0666 /dev/uinput
 
-# There is no etc/network/interfaces file in Ubuntu 22.04
-# sudo touch /etc/network/interfaces
-# sudo tee -a "/etc/network/interfaces" > /dev/null << EOM
-# auto eth0
-# iface eth0 inet dhcp
-# EOM
+# Network configuration
+# Configure network interface
+# Network configuration
 sudo sed -i "s/\(managed *= *\).*/\1true/" /etc/NetworkManager/NetworkManager.conf
 echo "SUBSYSTEM==\"net\",ACTION==\"add\",ATTR{address}==\"$NETWORK_INTERFACE_MAC\",KERNEL==\"$NETWORK_INTERFACE\",NAME=\"eth0\"" | sudo tee /etc/udev/rules.d/10-network.rules > /dev/null
+
+sudo rm -rf /etc/netplan/*
+sudo tee -a "/etc/netplan/01-network-manager-all.yaml" > /dev/null << EOM
+network:
+  version: 2
+  renderer: NetworkManager
+  ethernets:
+    eth0:
+      dhcp4: true
+      match:
+        macaddress: $MAC_ADDRESS
+      set-name: eth0
+EOM
+
 sudo tee -a "/etc/hosts" > /dev/null 2>&1 << EOM
 10.42.$OCTET.1  lg1
 10.42.$OCTET.2  lg2
@@ -249,7 +260,7 @@ table ip filter {
         ip protocol tcp ip saddr 10.42.$OCTET.0/24 tcp dport { 80, 3128, 3130 } counter accept
         ip protocol udp ip saddr 10.42.$OCTET.0/24 udp dport { 80, 3128, 3130 } counter accept
         ip protocol tcp ip saddr 10.42.$OCTET.0/24 tcp dport 9335 counter accept
-        ip protocol udp ip saddr 10.42.$OCTET.0/24 ip daddr 10.42.$OCTET.255 counter accept
+        ip protocol udp ip saddr 10.42.$OCTET.0/24 ip daddr 10.42.$OCTET.255/32 counter accept
         counter drop
     }
 
@@ -358,23 +369,6 @@ if [ $MASTER == true ]; then
 	sudo cp -r $USER_PATH/php-interface/. /var/www/html/
 	sudo chown -R $LOCAL_USER:$LOCAL_USER /var/www/html/
 fi
-
-# Network configuration
-# Configure network interface
-# Network configuration
-sudo rm -rf /etc/netplan/*
-# This is the file in Ubuntu 22.04
-sudo tee -a "/etc/netplan/01-network-manager-all.yaml" > /dev/null << EOM
-network:
-  version: 2
-  renderer: NetworkManager
-  ethernets:
-    eth0:
-      dhcp4: true
-      match:
-        macaddress: $MAC_ADDRESS
-      set-name: eth0
-EOM
 
 # Cleanup
 echo "Cleaning up..."
