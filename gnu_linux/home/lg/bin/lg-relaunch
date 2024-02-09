@@ -42,7 +42,9 @@ while getopts :hf: opt; do
 done
 
 RELAUNCH_CMD="\
-if [ -f /etc/init/lxdm.conf ]; then
+if [ -f /etc/gdm3/greeter.dconf-defaults ]; then
+  export SERVICE=gdm3
+elif [ -f /etc/init/lxdm.conf ]; then
   export SERVICE=lxdm
 elif [ -f /etc/init/lightdm.conf ]; then
   export SERVICE=lightdm
