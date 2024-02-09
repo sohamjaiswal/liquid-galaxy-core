@@ -111,12 +111,29 @@ if [ "$(cat /etc/os-release | grep NAME=\"Ubuntu\")" == "" ]; then
     read
 fi
 
+if [[ $EUID -eq 0 ]]; then
+   echo "Do not run it as root!" 1>&2
+   exit 1
+fi
+
+# Initialize sudo access
+sudo -v
+
+FOLDER_EXIST=$(find / -iname $GIT_FOLDER_NAME -print -quit 2>/dev/null)
+
+if [ "$FOLDER_EXIST" == "" ]; then
+	sudo apt install git
+	git clone $GIT_URL
+else
+	echo "Folder already exists"
+	USER_PATH=$FOLDER_EXIST
+fi
 #General
 export DEBIAN_FRONTEND=noninteractive
 
 #Update, Upgrade & Install Packages
 echo "Doin' Deps"
-sudo apt -yq update && sudo apt -yq upgrade && sudo apt install -yq net-tools ifupdown python3 python3-pip tcpdump iptables-persistent git chromium-browser nautilus openssh-server sshpass squid squid-cgi apache2 xdotool unclutter lsb-core lsb libc6 libc6-dev-i386 gcc linux-headers-$(uname -r) build-essential dkms
+sudo apt -yq update && sudo apt -yq upgrade && sudo apt install -yq net-tools ifupdown python3 python3-pip tcpdump iptables-persistent git chromium-browser nautilus openssh-server sshpass squid squid-cgi apache2 xdotool lightdm unclutter lsb-core lsb libc6 libc6-dev-i386 gcc linux-headers-$(uname -r) build-essential dkms
 pip3 install evdev
 if [ $INSTALL_DRIVERS == true ] ; then
 	echo "Installing extra drivers..."
@@ -132,43 +149,45 @@ sudo dpkg -i google-earth*.deb
 rm google-earth*.deb
 echo "Installed GEarth"
 
-# Generate the GDM3 configuration file
-sudo tee /etc/gdm3/custom.conf > /dev/null << EOM
-# Enable autologin for the specified user
-[daemon]
-AutomaticLogin=lg
-AutomaticLoginEnable=True
+# Stop the gdm3 service
+systemctl stop gdm3.service
 
-# Disable user list
-[greeter]
-DisableUserList=True
+# Install lightdm if not already installed
+apt update
+apt install -y lightdm
+
+# Set lightdm as the default display manager
+dpkg-reconfigure lightdm
+
+# Start lightdm service
+systemctl start lightdm.service
+
+# Generate the GDM3 configuration file
+echo "Setting system configuration..."
+sudo tee /etc/lightdm/lightdm.conf > /dev/null << EOM
+[Seat:*]
+autologin-guest=false
+autologin-user=$LOCAL_USER
+autologin-user-timeout=0
+autologin-session=ubuntu
 EOM
-echo "GDM3 Configured"
 
 # Set up the environment
 echo "Setting up the environment..."
+echo autologin-user=lg >> sudo /etc/lightdm/lightdm.conf
 gsettings set org.gnome.desktop.screensaver idle-activation-enabled false
 gsettings set org.gnome.desktop.session idle-delay 0
 gsettings set org.gnome.desktop.screensaver lock-enabled false
 gsettings set org.gnome.settings-daemon.plugins.power idle-dim false
 echo -e 'Section "ServerFlags"\nOption "blanktime" "0"\nOption "standbytime" "0"\nOption "suspendtime" "0"\nOption "offtime" "0"\nEndSection' | sudo tee -a /etc/X11/xorg.conf > /dev/null
-gsettings set org.gnome.shell.extensions.dash-to-dock click-action 'minimize'
-echo "Environment set up"
+gsettings set org.compiz.unityshell:/org/compiz/profiles/unity/plugins/unityshell/ launcher-hide-mode 1
 sudo update-alternatives --set x-www-browser /usr/bin/chromium-browser
 sudo update-alternatives --set gnome-www-browser /usr/bin/chromium-browser
-xdg-settings set default-web-browser chromium_chromium.desktop
 sudo apt-get remove --purge -yq update-notifier*
 echo "Environment set up"
 
-#SSH setup
-echo "Setting up SSH..."
-sudo systemctl start ssh
-sudo systemctl enable ssh
-echo "SSH setup done"
-
-#Liquid Galaxy
+# Setup Liquid Galaxy files
 echo "Setting up Liquid Galaxy..."
-git clone $GIT_URL
 sudo cp -r $USER_PATH/earth/ $HOME
 sudo ln -s $EARTH_FOLDER $HOME/earth/builds/latest
 awk '/LD_LIBRARY_PATH/{print "export LC_NUMERIC=en_US.UTF-8"}1' $HOME/earth/builds/latest/googleearth | sudo tee $HOME/earth/builds/latest/googleearth > /dev/null
@@ -176,7 +195,7 @@ awk '/LD_LIBRARY_PATH/{print "export LC_NUMERIC=en_US.UTF-8"}1' $HOME/earth/buil
 # Enable solo screen for slaves
 if [ $MASTER != true ]; then
 	sudo sed -i -e 's/slave_x/slave_'${MACHINE_ID}'/g' $HOME/earth/kml/slave/myplaces.kml
-    sudo sed -i -e 's/sync_nlc_x/sync_nlc_'${MACHINE_ID}'/g' $HOME/earth/kml/slave/myplaces.kml
+  sudo sed -i -e 's/sync_nlc_x/sync_nlc_'${MACHINE_ID}'/g' $HOME/earth/kml/slave/myplaces.kml
 fi
 
 sudo cp -r $USER_PATH/gnu_linux/home/lg/. $HOME
@@ -189,9 +208,8 @@ sudo cp -r . $HOME
 
 cd - > /dev/null
 
-sudo cp -r $USER_PATH/gnu_linux/etc/ /etc
-# sudo cp -r $USER_PATH/gnu_linux/patches/ / 
-sudo cp -r $USER_PATH/gnu_linux/sbin/ /sbin/
+sudo cp -r $USER_PATH/gnu_linux/etc/ $USER_PATH/gnu_linux/patches/ /
+sudo cp $USER_PATH/gnu_linux/sbin/dhclient-script-nm /sbin/dhclient-script-nm
 
 sudo chmod 0440 /etc/sudoers.d/42-lg
 sudo ln -s /etc/apparmor.d/sbin.dhclient /etc/apparmor.d/disable/
@@ -201,6 +219,68 @@ sudo chown -R $LOCAL_USER:$LOCAL_USER $HOME
 sudo chown $LOCAL_USER:$LOCAL_USER $HOME/earth/builds/latest/drivers.ini
 
 sudo chmod +0666 /dev/uinput
+
+# Configure SSH
+if [ $MASTER == true ]; then
+	echo "Setting up SSH..."
+	$HOME/tools/clean-ssh.sh
+else
+	echo "Starting SSH files sync with master..."
+	sshpass -p "$MASTER_PASSWORD" scp -o StrictHostKeyChecking=no $MASTER_IP:$MASTER_HOME/ssh-files.zip $HOME/
+	unzip $HOME/ssh-files.zip -d $HOME/ > /dev/null
+	sudo cp -r $HOME/ssh-files/etc/ssh /etc/
+	sudo cp -r $HOME/ssh-files/root/.ssh /root/ 2> /dev/null
+	sudo cp -r $HOME/ssh-files/user/.ssh $HOME/
+	sudo rm -r $HOME/ssh-files/
+	sudo rm $HOME/ssh-files.zip
+fi
+sudo chmod 0600 $HOME/.ssh/lg-id_rsa
+sudo chmod 0600 /root/.ssh/authorized_keys
+sudo chmod 0600 /etc/ssh/ssh_host_dsa_key
+sudo chmod 0600 /etc/ssh/ssh_host_ecdsa_key
+sudo chmod 0600 /etc/ssh/ssh_host_rsa_key
+sudo chown -R $LOCAL_USER:$LOCAL_USER $HOME/.ssh
+
+sudo chmod 777 /tmp/
+
+
+# prepare SSH files for other nodes (slaves)
+if [ $MASTER == true ]; then
+	mkdir -p ssh-files/etc
+	sudo cp -r /etc/ssh ssh-files/etc/
+	mkdir -p ssh-files/root/
+	sudo cp -r /root/.ssh ssh-files/root/ 2> /dev/null
+	mkdir -p ssh-files/user/
+	sudo cp -r $HOME/.ssh ssh-files/user/
+	sudo zip -FSr "ssh-files.zip" ssh-files
+	if [ $(pwd) != $HOME ]; then
+		sudo mv ssh-files.zip $HOME/ssh-files.zip
+	fi
+	sudo chown -R $LOCAL_USER:$LOCAL_USER $HOME/ssh-files.zip
+	sudo rm -r ssh-files/
+fi
+
+# Screens configuration
+cat > $HOME/personavars.txt << 'EOM'
+DHCP_LG_FRAMES="lg3 lg1 lg2"
+DHCP_LG_FRAMES_MAX=3
+
+FRAME_NO=$(cat $HOME/frame 2>/dev/null)
+DHCP_LG_SCREEN="$(( ${FRAME_NO} + 1 ))"
+DHCP_LG_SCREEN_COUNT=1
+DHCP_OCTET=42
+DHCP_LG_PHPIFACE="http://lg1:81/"
+
+DHCP_EARTH_PORT=45678
+DHCP_EARTH_BUILD="latest"
+DHCP_EARTH_QUERY="/tmp/query.txt"
+
+DHCP_MPLAYER_PORT=45680
+EOM
+sed -i "s/\(DHCP_LG_FRAMES *= *\).*/\1\"$LG_FRAMES\"/" $HOME/personavars.txt
+sed -i "s/\(DHCP_LG_FRAMES_MAX *= *\).*/\1$TOTAL_MACHINES/" $HOME/personavars.txt
+sed -i "s/\(DHCP_OCTET *= *\).*/\1$OCTET/" $HOME/personavars.txt
+sudo $HOME/bin/personality.sh $MACHINE_ID $OCTET > /dev/null
 
 sudo tee -a "/etc/network/interfaces" > /dev/null << EOM
 auto eth0
@@ -295,66 +375,6 @@ sudo nft -f /etc/nftables.conf
 sudo systemctl enable nftables
 sudo systemctl start nftables
 
-# Configure SSH
-if [ $MASTER == true ]; then
-	echo "Setting up SSH..."
-	$HOME/tools/clean-ssh.sh
-else
-	echo "Starting SSH files sync with master..."
-	sshpass -p "$MASTER_PASSWORD" scp -o StrictHostKeyChecking=no $MASTER_IP:$MASTER_HOME/ssh-files.zip $HOME/
-	unzip $HOME/ssh-files.zip -d $HOME/ > /dev/null
-	sudo cp -r $HOME/ssh-files/etc/ssh /etc/
-	sudo cp -r $HOME/ssh-files/root/.ssh /root/ 2> /dev/null
-	sudo cp -r $HOME/ssh-files/user/.ssh $HOME/
-	sudo rm -r $HOME/ssh-files/
-	sudo rm $HOME/ssh-files.zip
-fi
-sudo chmod 0600 $HOME/.ssh/lg-id_rsa
-sudo chmod 0600 /root/.ssh/authorized_keys
-sudo chmod 0600 /etc/ssh/ssh_host_ecdsa_key
-sudo chmod 0600 /etc/ssh/ssh_host_rsa_key
-sudo chown -R $LOCAL_USER:$LOCAL_USER $HOME/.ssh
-
-sudo chmod 777 /tmp/
-
-# prepare SSH files for other nodes (slaves)
-if [ $MASTER == true ]; then
-	mkdir -p ssh-files/etc
-	sudo cp -r /etc/ssh ssh-files/etc/
-	mkdir -p ssh-files/root/
-	sudo cp -r /root/.ssh ssh-files/root/ 2> /dev/null
-	mkdir -p ssh-files/user/
-	sudo cp -r $HOME/.ssh ssh-files/user/
-	sudo zip -FSr "ssh-files.zip" ssh-files
-	if [ $(pwd) != $HOME ]; then
-		sudo mv ssh-files.zip $HOME/ssh-files.zip
-	fi
-	sudo chown -R $LOCAL_USER:$LOCAL_USER $HOME/ssh-files.zip
-	sudo rm -r ssh-files/
-fi
-
-# Screens configuration
-cat > $HOME/personavars.txt << 'EOM'
-DHCP_LG_FRAMES="lg3 lg1 lg2"
-DHCP_LG_FRAMES_MAX=3
-
-FRAME_NO=$(cat $HOME/frame 2>/dev/null)
-DHCP_LG_SCREEN="$(( ${FRAME_NO} + 1 ))"
-DHCP_LG_SCREEN_COUNT=1
-DHCP_OCTET=42
-DHCP_LG_PHPIFACE="http://lg1:81/"
-
-DHCP_EARTH_PORT=45678
-DHCP_EARTH_BUILD="latest"
-DHCP_EARTH_QUERY="/tmp/query.txt"
-
-DHCP_MPLAYER_PORT=45680
-EOM
-sed -i "s/\(DHCP_LG_FRAMES *= *\).*/\1\"$LG_FRAMES\"/" $HOME/personavars.txt
-sed -i "s/\(DHCP_LG_FRAMES_MAX *= *\).*/\1$TOTAL_MACHINES/" $HOME/personavars.txt
-sed -i "s/\(DHCP_OCTET *= *\).*/\1$OCTET/" $HOME/personavars.txt
-sudo $HOME/bin/personality.sh $MACHINE_ID $OCTET > /dev/null
-
 # Launch on boot
 mkdir -p $HOME/.config/autostart/
 echo -e "[Desktop Entry]\nName=LG\nExec=bash "$HOME"/earth/scripts/launch-earth.sh\nType=Application" > $HOME"/.config/autostart/lg.desktop"
@@ -377,6 +397,10 @@ fi
 echo "Cleaning up..."
 sudo rm -r $USER_PATH
 sudo apt-get -yq autoremove
+
+#Make chromium default browser 
+xdg-settings set default-web-browser chromium-browser.desktop
+
 echo "Liquid Galaxy installation completed! :-)"
 echo "Press ENTER key to reboot now"
 read
