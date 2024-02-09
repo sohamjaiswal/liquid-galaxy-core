@@ -189,7 +189,7 @@ sudo cp -r . $HOME
 
 cd - > /dev/null
 
-sudo cp -r $USER_PATH/gnu_linux/etc/ /etc/
+sudo cp -r $USER_PATH/gnu_linux/etc/ /etc
 # sudo cp -r $USER_PATH/gnu_linux/patches/ / 
 sudo cp -r $USER_PATH/gnu_linux/sbin/ /sbin/
 
