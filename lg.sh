@@ -245,55 +245,109 @@ sudo tee -a "/etc/hosts.squid" > /dev/null 2>&1 << EOM
 10.42.$OCTET.8  lg8
 EOM
 
-sudo tee -a "/etc/nftables.conf" > /dev/null 2>&1 << EOM
-#!/usr/sbin/nft -f
-flush ruleset
-
-table ip filter {
-    chain input {
-        type filter hook input priority 0; policy accept;
-        iifname "lo" counter accept
-        ct state related,established counter accept
-        ip protocol icmp counter accept
-        ip protocol tcp tcp dport 22 counter accept
-        ip saddr 10.42.0.0/16 udp dport 161 counter accept
-        ip saddr 10.42.0.0/16 udp dport 3401 counter accept
-        ip protocol tcp tcp dport { 81, 8111, 8112 } counter accept
-        ip protocol udp udp dport 8113 counter accept
-        ip protocol tcp ip saddr 10.42.$OCTET.0/24 tcp dport { 80, 3128, 3130 } counter accept
-        ip protocol udp ip saddr 10.42.$OCTET.0/24 udp dport { 80, 3128, 3130 } counter accept
-        ip protocol tcp ip saddr 10.42.$OCTET.0/24 tcp dport 9335 counter accept
-        ip protocol udp ip saddr 10.42.$OCTET.0/24 ip daddr 10.42.$OCTET.255/32 counter accept
-        counter drop
-    }
-
-    chain forward {
-        type filter hook forward priority 0; policy drop;
-    }
-}
-
-table ip nat {
-    chain prerouting {
-        type nat hook prerouting priority -100; policy accept;
-    }
-
-    chain input {
-        type nat hook input priority 100; policy accept;
-    }
-
-    chain output {
-        type nat hook output priority -100; policy accept;
-    }
-
-    chain postrouting {
-        type nat hook postrouting priority 100; policy accept;
-    }
-}
+sudo tee "/etc/iptables.conf" > /dev/null << EOM
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [43616:6594412]
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -p tcp -m multiport --dports 22 -j ACCEPT
+-A INPUT -s 10.42.0.0/16 -p udp -m udp --dport 161 -j ACCEPT
+-A INPUT -s 10.42.0.0/16 -p udp -m udp --dport 3401 -j ACCEPT
+-A INPUT -p tcp -m multiport --dports 81,8111,8112 -j ACCEPT
+-A INPUT -p udp -m multiport --dports 8113 -j ACCEPT
+-A INPUT -s 10.42.$OCTET.0/24 -p tcp -m multiport --dports 80,3128,3130 -j ACCEPT
+-A INPUT -s 10.42.$OCTET.0/24 -p udp -m multiport --dports 80,3128,3130 -j ACCEPT
+-A INPUT -s 10.42.$OCTET.0/24 -p tcp -m multiport --dports 9335 -j ACCEPT
+-A INPUT -s 10.42.$OCTET.0/24 -d 10.42.$OCTET.255/32 -p udp -j ACCEPT
+-A INPUT -j DROP
+-A FORWARD -j DROP
+COMMIT
+*nat
+:PREROUTING ACCEPT [52902:8605309]
+:INPUT ACCEPT [0:0]
+:OUTPUT ACCEPT [358:22379]
+:POSTROUTING ACCEPT [358:22379]
+COMMIT
 EOM
+sudo tee "/etc/iptables.conf" > /dev/null << EOM
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [43616:6594412]
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -p tcp -m multiport --dports 22 -j ACCEPT
+-A INPUT -s 10.42.0.0/16 -p udp -m udp --dport 161 -j ACCEPT
+-A INPUT -s 10.42.0.0/16 -p udp -m udp --dport 3401 -j ACCEPT
+-A INPUT -p tcp -m multiport --dports 81,8111,8112 -j ACCEPT
+-A INPUT -p udp -m multiport --dports 8113 -j ACCEPT
+-A INPUT -s 10.42.$OCTET.0/24 -p tcp -m multiport --dports 80,3128,3130 -j ACCEPT
+-A INPUT -s 10.42.$OCTET.0/24 -p udp -m multiport --dports 80,3128,3130 -j ACCEPT
+-A INPUT -s 10.42.$OCTET.0/24 -p tcp -m multiport --dports 9335 -j ACCEPT
+-A INPUT -s 10.42.$OCTET.0/24 -d 10.42.$OCTET.255/32 -p udp -j ACCEPT
+-A INPUT -j DROP
+-A FORWARD -j DROP
+COMMIT
+*nat
+:PREROUTING ACCEPT [52902:8605309]
+:INPUT ACCEPT [0:0]
+:OUTPUT ACCEPT [358:22379]
+:POSTROUTING ACCEPT [358:22379]
+COMMIT
+EOM
+# sudo tee -a "/etc/nftables.conf" > /dev/null 2>&1 << EOM
+# #!/usr/sbin/nft -f
+# flush ruleset
 
-sudo nft -f /etc/nftables.conf
-sudo systemctl enable nftables
-sudo systemctl start nftables
+# table ip filter {
+#     chain input {
+#         type filter hook input priority 0; policy accept;
+#         iifname "lo" counter accept
+#         ct state related,established counter accept
+#         ip protocol icmp counter accept
+#         ip protocol tcp tcp dport 22 counter accept
+#         ip saddr 10.42.0.0/16 udp dport 161 counter accept
+#         ip saddr 10.42.0.0/16 udp dport 3401 counter accept
+#         ip protocol tcp tcp dport { 81, 8111, 8112 } counter accept
+#         ip protocol udp udp dport 8113 counter accept
+#         ip protocol tcp ip saddr 10.42.$OCTET.0/24 tcp dport { 80, 3128, 3130 } counter accept
+#         ip protocol udp ip saddr 10.42.$OCTET.0/24 udp dport { 80, 3128, 3130 } counter accept
+#         ip protocol tcp ip saddr 10.42.$OCTET.0/24 tcp dport 9335 counter accept
+#         ip protocol udp ip saddr 10.42.$OCTET.0/24 ip daddr 10.42.$OCTET.255/32 counter accept
+#         counter drop
+#     }
+
+#     chain forward {
+#         type filter hook forward priority 0; policy drop;
+#     }
+# }
+
+# table ip nat {
+#     chain prerouting {
+#         type nat hook prerouting priority -100; policy accept;
+#     }
+
+#     chain input {
+#         type nat hook input priority 100; policy accept;
+#     }
+
+#     chain output {
+#         type nat hook output priority -100; policy accept;
+#     }
+
+#     chain postrouting {
+#         type nat hook postrouting priority 100; policy accept;
+#     }
+# }
+# EOM
+
+# sudo nft -f /etc/nftables.conf
+# sudo systemctl enable nftables
+# sudo systemctl start nftables
 
 # Configure SSH
 if [ $MASTER == true ]; then
