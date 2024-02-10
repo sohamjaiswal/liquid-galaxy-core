@@ -133,7 +133,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 #Update, Upgrade & Install Packages
 echo "Doin' Deps"
-sudo apt -yq update && sudo apt -yq upgrade && sudo apt install -yq net-tools ifupdown python3 python3-pip tcpdump iptables-persistent git chromium-browser nautilus openssh-server sshpass squid squid-cgi apache2 xdotool lightdm unclutter lsb-core lsb libc6 libc6-dev-i386 gcc linux-headers-$(uname -r) build-essential dkms
+sudo apt -yq update && sudo apt -yq upgrade && sudo apt install -yq net-tools ifupdown python3 python3-pip tcpdump iptables-persistent git chromium-browser nautilus openssh-server sshpass squid squid-cgi apache2 xdotool unclutter lsb-core lsb libc6 libc6-dev-i386 gcc linux-headers-$(uname -r) build-essential dkms
 pip3 install evdev
 if [ $INSTALL_DRIVERS == true ] ; then
 	echo "Installing extra drivers..."
@@ -148,19 +148,6 @@ wget -q $EARTH_DEB
 sudo dpkg -i google-earth*.deb
 rm google-earth*.deb
 echo "Installed GEarth"
-
-# Stop the gdm3 service
-systemctl stop gdm3.service
-
-# Install lightdm if not already installed
-apt update
-apt install -y lightdm
-
-# Set lightdm as the default display manager
-dpkg-reconfigure lightdm
-
-# Start lightdm service
-systemctl start lightdm.service
 
 # Generate the GDM3 configuration file
 echo "Setting system configuration..."
