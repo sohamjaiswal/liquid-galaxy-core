@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 ##### lg-relaunch
-# Works with legacy (lxdm) or current (lightdm) display manager.
+# Works with legacy (lxdm/lightdm) or current (gdm3) display manager.
 
 . ${HOME}/etc/shell.conf
 

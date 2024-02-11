@@ -151,17 +151,25 @@ echo "Installed GEarth"
 
 # Generate the GDM3 configuration file
 echo "Setting system configuration..."
-sudo tee /etc/lightdm/lightdm.conf > /dev/null << EOM
-[Seat:*]
-autologin-guest=false
-autologin-user=$LOCAL_USER
-autologin-user-timeout=0
-autologin-session=ubuntu
+sudo tee /etc/gdm3/custom.conf > /dev/null << EOM
+# GDM configuration storage
+[daemon]
+# Uncomment the line below to force the login screen to use Xorg
+#WaylandEnable=false
+
+# Enabling automatic login
+AutomaticLoginEnable = true
+AutomaticLogin = $LOCAL_USER
+
+# Enabling timed login
+TimedLoginEnable = false
+TimedLogin = $LOCAL_USER
+TimedLoginDelay = 0
 EOM
+
 
 # Set up the environment
 echo "Setting up the environment..."
-echo autologin-user=lg >> sudo /etc/lightdm/lightdm.conf
 gsettings set org.gnome.desktop.screensaver idle-activation-enabled false
 gsettings set org.gnome.desktop.session idle-delay 0
 gsettings set org.gnome.desktop.screensaver lock-enabled false

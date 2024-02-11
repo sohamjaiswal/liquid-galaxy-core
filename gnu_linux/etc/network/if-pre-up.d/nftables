@@ -1,0 +1,17 @@
+#!/bin/sh
+
+NFT_CMD=`which nft`
+NFT_CFG=/etc/nftables.conf
+SYSLOG_FACILITY=kern.warning
+
+if [ ! -x $NFT_CMD ]; then
+    logger -p $SYSLOG_FACILITY "firewall: cannot execute $NFT_CMD"
+    exit 1
+fi
+
+if [ ! -f $NFT_CFG ]; then
+    logger -p $SYSLOG_FACILITY "firewall: no configuration $NFT_CFG"
+    exit 1
+fi
+
+$NFT_CMD -f $NFT_CFG
