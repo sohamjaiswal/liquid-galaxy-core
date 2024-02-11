@@ -102,14 +102,7 @@ EARTH_DEB: $EARTH_DEB
 EARTH_FOLDER: $EARTH_FOLDER
 NETWORK_INTERFACE: $NETWORK_INTERFACE
 NETWORK_MAC_ADDRESS: $NETWORK_INTERFACE_MAC
-Is it correct? Press any key to continue or CTRL-C to exit
 EOM
-read
-if [ "$(cat /etc/os-release | grep NAME=\"Ubuntu\")" == "" ]; then
-	echo "Warning!! This script is meant to be run on an Ubuntu OS. It may not work as expected."
-    echo -n "Press any key to continue or CTRL-C to exit"
-    read
-fi
 
 #Update, Upgrade & Install Packages
 echo "Doin' Deps"
