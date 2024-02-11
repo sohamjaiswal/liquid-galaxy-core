@@ -156,6 +156,7 @@ echo "Environment set up"
 
 # Setup Liquid Galaxy files
 echo "Setting up Liquid Galaxy..."
+git clone $GIT_URL
 sudo cp -r $USER_PATH/earth/ $HOME
 sudo ln -s $EARTH_FOLDER $HOME/earth/builds/latest
 awk '/LD_LIBRARY_PATH/{print "export LC_NUMERIC=en_US.UTF-8"}1' $HOME/earth/builds/latest/googleearth | sudo tee $HOME/earth/builds/latest/googleearth > /dev/null
