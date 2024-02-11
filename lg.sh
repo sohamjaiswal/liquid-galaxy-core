@@ -111,9 +111,6 @@ if [ "$(cat /etc/os-release | grep NAME=\"Ubuntu\")" == "" ]; then
     read
 fi
 
-#General
-export DEBIAN_FRONTEND=noninteractive
-
 #Update, Upgrade & Install Packages
 echo "Doin' Deps"
 sudo apt -yq update && sudo apt -yq upgrade && sudo apt install -yq net-tools ifupdown python3 python3-pip tcpdump iptables-persistent git chromium-browser nautilus openssh-server sshpass squid squid-cgi apache2 xdotool unclutter lsb-core lsb libc6 libc6-dev-i386 gcc linux-headers-$(uname -r) build-essential dkms
