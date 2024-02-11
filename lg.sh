@@ -111,14 +111,6 @@ if [ "$(cat /etc/os-release | grep NAME=\"Ubuntu\")" == "" ]; then
     read
 fi
 
-if [[ $EUID -eq 0 ]]; then
-   echo "Do not run it as root!" 1>&2
-   exit 1
-fi
-
-# Initialize sudo access
-sudo -v
-
 FOLDER_EXIST=$(find / -iname $GIT_FOLDER_NAME -print -quit 2>/dev/null)
 
 if [ "$FOLDER_EXIST" == "" ]; then
