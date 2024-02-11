@@ -111,15 +111,6 @@ if [ "$(cat /etc/os-release | grep NAME=\"Ubuntu\")" == "" ]; then
     read
 fi
 
-FOLDER_EXIST=$(find / -iname $GIT_FOLDER_NAME -print -quit 2>/dev/null)
-
-if [ "$FOLDER_EXIST" == "" ]; then
-	sudo apt install git
-	git clone $GIT_URL
-else
-	echo "Folder already exists"
-	USER_PATH=$FOLDER_EXIST
-fi
 #General
 export DEBIAN_FRONTEND=noninteractive
 
