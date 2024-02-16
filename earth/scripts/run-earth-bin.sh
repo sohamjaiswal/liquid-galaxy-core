@@ -72,10 +72,10 @@ while true ; do
     [ -w $SPACENAVDEV ] && ${HOME}/bin/led-enable ${SPACENAVDEV} 1
 
     cd ${BUILDDIR}/${EARTH_BUILD}
-    rm -f ${HOME}/.googleearth/Cache/db* # important: otherwise we get random broken tiles
-    rm -rf ${HOME}/.googleearth/Temp/*
-    rm -f ${EARTH_QUERY:-/tmp/query.txt}
-    # shove mouse over to touchscreen interface
+    # rm -f ${HOME}/.googleearth/Cache/db* # important: otherwise we get random broken tiles
+    # rm -rf ${HOME}/.googleearth/Temp/*
+    # rm -f ${EARTH_QUERY:-/tmp/query.txt}
+    # # shove mouse over to touchscreen interface
 
     # move mouse
     DISPLAY=:0 /usr/bin/xdotool mousemove -screen 0 1190 1910
