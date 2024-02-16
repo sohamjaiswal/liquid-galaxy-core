@@ -31,7 +31,10 @@ OCTET="42"
 SCREEN_ORIENTATION="V"
 GIT_FOLDER_NAME="liquid-galaxy-core"
 GIT_URL="https://github.com/sohamjaiswal/liquid-galaxy-core"
-EARTH_DEB="https://github.com/sohamjaiswal/liquid-galaxy-core/raw/master/google-earth-pro7_1.deb"
+EARTH_DEB="http://dl.google.com/dl/earth/client/current/google-earth-stable_current_i386.deb"
+if [ `getconf LONG_BIT` = "64" ]; then
+    EARTH_DEB="http://dl.google.com/dl/earth/client/current/google-earth-stable_current_amd64.deb"
+fi
 EARTH_FOLDER="/opt/google/earth/pro/"
 NETWORK_INTERFACE=$(ip route | awk '/^default/ {print $5}')
 NETWORK_INTERFACE_MAC=$(ip link show $NETWORK_INTERFACE | awk '/ether/ {print $2}')
