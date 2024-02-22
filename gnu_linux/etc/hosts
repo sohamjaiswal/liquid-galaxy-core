@@ -1,8 +1,7 @@
 127.0.0.1    localhost.localdomain    localhost 
 127.0.1.1    lgX.liquid.local         lgX
 # send these domains through squid
-# 127.0.1.2 kg.google.com -> does not work through squid 5 for some reason 
-127.0.1.2    www.endpoint.com khmdb.google.com mw1.google.com mw2.google.com cbk0.google.com
+# 127.0.1.2 kg.google.com www.endpoint.com khmdb.google.com mw1.google.com mw2.google.com cbk0.google.com -> does not work through squid 5 for some reason 
 
 # The following lines are desirable for IPv6 capable hosts
 ::1     localhost ip6-localhost ip6-loopback
