@@ -6,14 +6,18 @@ View this to track behaviour reproduction progress...
 | Behaviour          | Status       |
 |--------------------|--------------|
 | Launch G-Earth     | ✅ (Done)     |
-| Correct N/W Config | ❌ (Failing)  |
-| SSH Setup          | 💫 (Untested) |
+| Correct N/W Config | ✅ (Done)   |
+| SSH Setup          | ✅ (Done)  |
+| Squid Network Cache Optimization          | ❌ (Not Done)  |
 
 ## Tested Apps
 
 | App Name         | Status       |
 |------------------|--------------|
-| LG Controller    | 💫 (Untested) |
+| LG Controller    | ✅ (Done)  |
+| La Palma VolTrac    | ✅ (Done)  |
+| SatNOGS    | ✅ (Done)  |
+| Smart City Dashboard    | ✅ (Done)  |
 
 # Before Installation
 
